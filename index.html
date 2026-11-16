@@ -1827,7 +1827,6 @@ window.rodoLogoCliente = function(nome){
   <div class="top-actions">
     <span class="status-pill" id="recCount" title="Data e hora de modificação do arquivo importado"><span class="dot"></span> Atualizado em 25/09/2026 às 09:45</span>
     <input type="file" id="fileInput" accept=".xlsb,.xlsx,.xls,.json,application/json" style="display:none">
-    <button class="btn ghost" id="vidBtn" title="Vídeos de treinamento" aria-label="Vídeos de treinamento" aria-haspopup="dialog"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="3"></rect><polygon points="10 9 16 12 10 15 10 9" fill="currentColor"></polygon></svg> Vídeos</button>
     <button class="btn ghost" id="refreshBtn" title="Atualizar: recarrega a página (F5) e baixa os dados mais recentes" aria-label="Atualizar"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"></path><path d="M20.49 15a9 9 0 0 1-14.85 3.36L1 14"></path></svg></button>
     <button class="btn ghost" id="exportBtn" title="Exportar relatório (Excel, PDF ou JSON)" aria-label="Exportar"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg></button>
     <button class="btn ghost" id="importBtn" title="Importar arquivo Excel (xlsx/xlsb/xls) ou JSON" aria-label="Importar"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg></button>
@@ -1909,6 +1908,11 @@ window.rodoLogoCliente = function(nome){
   <div class="nav-item" data-screen="terceirizada">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
    Terceirizada
+  </div>
+  <hr class="dashed" style="">
+  <div class="nav-item" data-screen="apoio">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="3"></rect><polygon points="10 9 16 12 10 15 10 9" fill="currentColor"></polygon></svg>
+    Apoio
   </div>
   <hr class="dashed" style="">
   <div class="nav-item active" data-screen="configuracao" id="navConfig">
@@ -5094,6 +5098,65 @@ window.rodoLogoCliente = function(nome){
   if(API_URL && Object.keys(dirty).length) flush();          // reenvia o que ficou pendente (ex.: fechou a aba sem rede)
 
   window.renderTerceirizada = render;
+})();
+</script>
+
+<!-- ============================================================== -->
+<!-- TELA APOIO — vídeos de treinamento                               -->
+<!-- ============================================================== -->
+<style>
+#screen-apoio .ap-wrap{display:grid;grid-template-columns:280px 1fr;gap:16px;align-items:start}
+#screen-apoio .ap-list{display:flex;flex-direction:column;gap:8px}
+#screen-apoio .ap-item{display:flex;align-items:center;gap:10px;text-align:left;border:1px solid #d5dce8;background:#fff;color:#14233b;border-radius:10px;padding:12px;font:inherit;font-size:14px;cursor:pointer}
+#screen-apoio .ap-item:hover{background:#eef3fb}
+#screen-apoio .ap-item .n{flex:0 0 26px;height:26px;border-radius:50%;background:#eaf0fa;color:#1d4ed8;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px}
+#screen-apoio .ap-item.on{background:#1d4ed8;border-color:#1d4ed8;color:#fff;font-weight:600}
+#screen-apoio .ap-item.on .n{background:rgba(255,255,255,.2);color:#fff}
+#screen-apoio .ap-player{position:relative;width:100%;aspect-ratio:16/9;background:#000;border-radius:12px;overflow:hidden}
+#screen-apoio .ap-player iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+#screen-apoio .ap-cur{margin:10px 2px 0;font-size:16px;font-weight:700}
+@media (max-width:820px){#screen-apoio .ap-wrap{grid-template-columns:1fr}}
+</style>
+<section class="screen" id="screen-apoio">
+  <div class="card" style="padding:16px">
+    <h3 style="margin:0 0 4px">Apoio · Vídeos de treinamento</h3>
+    <p style="margin:0 0 14px;opacity:.75;font-size:13px">Escolha um vídeo na lista para assistir.</p>
+    <div class="ap-wrap">
+      <div class="ap-list" id="apList"></div>
+      <div><div class="ap-player" id="apPlayer"></div><p class="ap-cur" id="apCur"></p></div>
+    </div>
+  </div>
+</section>
+<script>
+(function(){
+  var VIDEOS = [
+    {t:'Treinamento', id:'r4XTrjN2Gc8'},
+    {t:'Preparação da entrega', id:'ytWwJILzlHs'},
+    {t:'Finalização da entrega', id:'LfnNxeKQ0eo'},
+    {t:'Comunicação verbal', id:'T7kPCTz_CDE'},
+    {t:'Comunicação não verbal', id:'Dw0hWsJgfs0'}
+  ];
+  var scr = document.getElementById('screen-apoio'), list = document.getElementById('apList'),
+      player = document.getElementById('apPlayer'), cur = document.getElementById('apCur');
+  if(!scr || !list) return;
+  function play(i){
+    var v = VIDEOS[i];
+    player.innerHTML = '<iframe src="https://www.youtube-nocookie.com/embed/'+v.id+'?rel=0" title="'+v.t+'" allow="accelerometer; encrypted-media; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>';
+    cur.textContent = v.t;
+    Array.prototype.forEach.call(list.children, function(b, k){ b.classList.toggle('on', k === i); });
+  }
+  VIDEOS.forEach(function(v, i){
+    var b = document.createElement('button'); b.type = 'button'; b.className = 'ap-item';
+    b.innerHTML = '<span class="n">'+(i+1)+'</span><span></span>'; b.lastChild.textContent = v.t;
+    b.addEventListener('click', function(){ play(i); });
+    list.appendChild(b);
+  });
+  /* carrega o player só ao abrir a tela; ao sair, remove o iframe para parar o vídeo */
+  new MutationObserver(function(){
+    var on = scr.classList.contains('active');
+    if(on && !player.firstChild) play(0);
+    if(!on) { player.innerHTML = ''; }
+  }).observe(scr, {attributes:true, attributeFilter:['class']});
 })();
 </script>
 
@@ -9422,6 +9485,7 @@ document.getElementById('exportBtn').addEventListener('click', openExportModal);
     prazos:       'Prazos',
     planejamento: 'Planejamento',
     terceirizada: 'Terceirizada',
+    apoio:        'Apoio',
     qualidade:    'Qualidade',
     configuracao: 'Usuários',
     apresentacao: 'Apresentação'
@@ -12507,7 +12571,7 @@ const QUAL_DEFAULT = {"rnc":[{"id":1,"acao":"Enviado Pacote de RNC's mes de junh
   const ALL_SCREENS = ['entregas','parceiros','prazos','coletas','avaliacao','reclame','custos','qualidade','planejamento','terceirizada','configuracao','apresentacao'];
   const SCREEN_LABEL = {
     entregas:'Entregas', parceiros:'Parceiros', coletas:'Coletas',
-    avaliacao:'Avaliação', reclame:'Reclame Aqui', custos:'Custos', prazos:'Prazos', qualidade:'Qualidade', planejamento:'Planejamento', terceirizada:'Terceirizada', configuracao:'Usuários', apresentacao:'Apresentação'
+    avaliacao:'Avaliação', reclame:'Reclame Aqui', custos:'Custos', prazos:'Prazos', qualidade:'Qualidade', planejamento:'Planejamento', terceirizada:'Terceirizada', apoio:'Apoio', configuracao:'Usuários', apresentacao:'Apresentação'
   };
 
   // v28.1 HOTFIX: migra usuários e sessão salvos para incluir 'planejamento'
@@ -12761,7 +12825,7 @@ const QUAL_DEFAULT = {"rnc":[{"id":1,"acao":"Enviado Pacote de RNC's mes de junh
     // Esconde itens do drawer não permitidos
     document.querySelectorAll('.drawer .nav-item').forEach(item => {
       const s = item.getAttribute('data-screen');
-      if(allowed.has(s)){
+      if(allowed.has(s) || s === 'apoio'){ /* Apoio (vídeos) é liberado para todos os perfis */
         item.style.display = '';
       } else {
         item.style.display = 'none';
@@ -16732,65 +16796,4 @@ document.head.appendChild(css);
   if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', iniciar); else iniciar();
 })();
 </script>
-
-<!-- ===== VÍDEOS DE TREINAMENTO ===== -->
-<style>
-#vidModal{position:fixed;inset:0;z-index:10000;display:none;align-items:center;justify-content:center;background:rgba(8,15,30,.7);padding:16px}
-#vidModal.open{display:flex}
-#vidModal .vid-box{background:#fff;color:#14233b;border-radius:14px;width:min(960px,100%);max-height:calc(100vh - 32px);overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.45)}
-#vidModal .vid-head{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid #e3e8f0}
-#vidModal .vid-head h3{margin:0;font-size:16px}
-#vidModal .vid-x{border:0;background:#eef2f8;color:#14233b;width:32px;height:32px;border-radius:8px;font-size:20px;line-height:1;cursor:pointer}
-#vidModal .vid-body{display:grid;grid-template-columns:240px 1fr;gap:14px;padding:14px 16px}
-#vidModal .vid-list{display:flex;flex-direction:column;gap:6px}
-#vidModal .vid-item{text-align:left;border:1px solid #d5dce8;background:#f7f9fc;color:#14233b;border-radius:9px;padding:10px 12px;font:inherit;font-size:13.5px;cursor:pointer}
-#vidModal .vid-item:hover{background:#eaf0fa}
-#vidModal .vid-item.on{background:#1d4ed8;border-color:#1d4ed8;color:#fff;font-weight:600}
-#vidModal .vid-player{position:relative;width:100%;aspect-ratio:16/9;background:#000;border-radius:10px;overflow:hidden}
-#vidModal .vid-player iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
-#vidModal .vid-t{margin:8px 0 0;font-size:14px;font-weight:600}
-@media (max-width:720px){#vidModal .vid-body{grid-template-columns:1fr}#vidModal .vid-list{flex-direction:row;flex-wrap:wrap}}
-</style>
-<div id="vidModal" role="dialog" aria-modal="true" aria-labelledby="vidTitle">
-  <div class="vid-box">
-    <div class="vid-head"><h3 id="vidTitle">Vídeos de treinamento</h3><button type="button" class="vid-x" id="vidClose" aria-label="Fechar">×</button></div>
-    <div class="vid-body">
-      <div class="vid-list" id="vidList"></div>
-      <div><div class="vid-player" id="vidPlayer"></div><p class="vid-t" id="vidCur"></p></div>
-    </div>
-  </div>
-</div>
-<script>
-(function(){
-  var VIDEOS = [
-    {t:'Treinamento', id:'r4XTrjN2Gc8'},
-    {t:'Preparação da entrega', id:'ytWwJILzlHs'},
-    {t:'Finalização da entrega', id:'LfnNxeKQ0eo'},
-    {t:'Comunicação verbal', id:'T7kPCTz_CDE'},
-    {t:'Comunicação não verbal', id:'Dw0hWsJgfs0'}
-  ];
-  var modal = document.getElementById('vidModal'), list = document.getElementById('vidList'),
-      player = document.getElementById('vidPlayer'), cur = document.getElementById('vidCur'),
-      btn = document.getElementById('vidBtn');
-  if(!modal || !btn) return;
-  function play(i){
-    var v = VIDEOS[i];
-    player.innerHTML = '<iframe src="https://www.youtube-nocookie.com/embed/'+v.id+'?rel=0" title="'+v.t+'" allow="accelerometer; autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>';
-    cur.textContent = v.t;
-    Array.prototype.forEach.call(list.children, function(b, k){ b.classList.toggle('on', k === i); });
-  }
-  VIDEOS.forEach(function(v, i){
-    var b = document.createElement('button'); b.type = 'button'; b.className = 'vid-item';
-    b.textContent = (i+1) + '. ' + v.t; b.addEventListener('click', function(){ play(i); });
-    list.appendChild(b);
-  });
-  function open(){ modal.classList.add('open'); play(0); }
-  function close(){ modal.classList.remove('open'); player.innerHTML = ''; } /* limpa o iframe para parar o vídeo */
-  btn.addEventListener('click', open);
-  document.getElementById('vidClose').addEventListener('click', close);
-  modal.addEventListener('click', function(e){ if(e.target === modal) close(); });
-  document.addEventListener('keydown', function(e){ if(e.key === 'Escape' && modal.classList.contains('open')) close(); });
-})();
-</script>
-<!-- ===== FIM VÍDEOS ===== -->
 </body></html>
