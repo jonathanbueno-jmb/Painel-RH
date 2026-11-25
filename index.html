@@ -166,6 +166,10 @@ dialog{border:1px solid var(--ln);border-radius:14px;background:var(--sf);color:
 .eth{display:flex;flex-wrap:wrap;gap:8px}.eb{display:flex;flex-wrap:wrap;gap:8px}
 .fth{width:92px;border:1px solid var(--ln);border-radius:8px;background:var(--sf2);padding:0 0 4px;cursor:pointer;overflow:hidden;text-align:center;color:inherit}
 .fth img{width:100%;height:68px;object-fit:cover;display:block;background:var(--sf2);margin-bottom:4px}
+.pf{width:56px;height:56px;border-radius:50%;object-fit:cover;background:var(--sf2);flex:none;display:flex;align-items:center;justify-content:center;font:700 20px/1 var(--font);color:var(--mu);border:1px solid var(--ln);overflow:hidden}
+.pf.s{width:32px;height:32px;font-size:13px}.pf.l{width:84px;height:84px;font-size:28px}
+.pfc{display:flex;gap:16px;align-items:center;flex-wrap:wrap}.pfc .ph{width:120px;height:160px;border-radius:10px;border:1px solid var(--ln);background:var(--sf2);object-fit:cover;display:flex;align-items:center;justify-content:center;color:var(--mu);font-size:12px;text-align:center;padding:6px;box-sizing:border-box;flex:none}
+.pfc .pi{flex:1;min-width:220px;display:flex;flex-direction:column;gap:8px}
 dialog::backdrop{background:rgba(0,0,0,.45)}
 .fg{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin:14px 0}
 .f label{display:block;font-size:11px;color:var(--mu);margin-bottom:3px;font-weight:600;text-transform:uppercase;letter-spacing:.4px}
@@ -574,6 +578,8 @@ document.documentElement.setAttribute('data-theme',t);document.body.classList.ad
 <dialog id="dn"><h2 id="dt" style="font-size:17px"></h2><form id="df" method="dialog"><div class="fg" id="dfg"></div><div class="ft"><button type="button" class="btn" id="dx">Cancelar</button><button type="submit" class="btn p" id="ds">Salvar</button></div></form></dialog>
 <input type="file" id="empCam" accept="image/*" capture="environment" hidden>
 <input type="file" id="empGal" accept="image/*" multiple hidden>
+<input type="file" id="empFCam" accept="image/*" capture="user" hidden>
+<input type="file" id="empFGal" accept="image/*" hidden>
 <dialog id="dnovo"><h2 id="dnH" style="font-size:17px;margin:0 0 4px">Novo funcionário</h2>
   <div id="dnA"><p style="margin:0 0 12px;color:var(--mu);font-size:13px">Informe o nome. O sistema cria o cadastro e um login temporário para o funcionário completar os dados e enviar as fotos dos documentos.</p>
     <div class="eg-g"><div class="f" style="grid-column:1/-1"><label for="dnNome">Nome completo *</label><input id="dnNome" maxlength="80" autocomplete="off"></div>
@@ -1332,7 +1338,7 @@ function fichaHtml(f){
   const dc=(S.docs||[]).filter(d=>d.func===f.id);
   const fi=feriasInfo(f),asoS=asoSt(f);
   /* cabeçalho */
-  const hdr='<div class="card" style="margin-bottom:12px"><div style="display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;justify-content:space-between"><div><h3 style="margin:0;font-size:18px">'+esc(f.nome)+'</h3><small>'+esc(f.cargo||'—')+' · '+esc(f.depto||'—')+(f.unidade?' · '+esc(f.unidade):'')+'</small></div>'+pill(f.status||'—')+'</div>'
+  const hdr='<div class="card" style="margin-bottom:12px"><div style="display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;justify-content:space-between"><div style="display:flex;gap:14px;align-items:center">'+avFunc(f,'l')+'<div><h3 style="margin:0;font-size:18px">'+esc(f.nome)+'</h3><small>'+esc(f.cargo||'—')+' · '+esc(f.depto||'—')+(f.unidade?' · '+esc(f.unidade):'')+'</small></div></div>'+pill(f.status||'—')+'</div>'
     +'<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px 16px;margin-top:14px">'
     +fact('Contrato',esc(f.contrato||'—'))+fact('Admissão',fmt(f.admissao))+fact('Gestor direto',gest?esc(gest.nome):'—')
     +((f.horEntrada||f.horSaida)?fact('Horário',esc(f.horEntrada||'—')+' às '+esc(f.horSaida||'—')):'')
@@ -1394,7 +1400,7 @@ function fichaHtml(f){
 
 function vVisao(){
   const fsel=vfBar(),fv=UI.vf&&fById(UI.vf);
-  if(fv){$('#view').innerHTML=head('Dashboard','Resumo individual de '+esc(fv.nome))+fsel+fichaHtml(fv);return}
+  if(fv){$('#view').innerHTML=head('Dashboard','Resumo individual de '+esc(fv.nome))+fsel+fichaHtml(fv);hydrateImgs();return}
   const L=live(),n=L.length,pr=L.map(pay),folha=pr.reduce((a,p)=>a+p.b,0),custo=pr.reduce((a,p)=>a+p.custo,0);
   const d12=addD(T,-365),deslig=S.func.filter(f=>f.desligamento&&f.desligamento>d12&&f.desligamento<=T).length;
   const avg=(n+hcAt(d12))/2,turn=avg?deslig/avg:0;
@@ -2059,6 +2065,26 @@ const EMP_MAX={cpf:11,cnh:11,pis:11,titulo:12,cep:9};
 const IMGS={};
 const cpfOk=v=>{v=String(v).replace(/\D/g,'');if(v.length!==11||/^(\d)\1+$/.test(v))return false;for(let t=9;t<11;t++){let s=0;for(let i=0;i<t;i++)s+=v[i]*(t+1-i);if((s*10%11)%10!=v[t])return false}return true};
 
+/* foto do empregado (3x4): usada no crachá e na ficha do Dashboard */
+function avFunc(f,cls){
+  const ini=(f.nome||'?').trim().split(/\s+/).filter(Boolean).map(x=>x[0]).slice(0,2).join('').toUpperCase();
+  return f.fotoId?'<img class="pf '+(cls||'')+'" data-img="'+f.fotoId+'" alt="Foto de '+esc(f.nome)+'">':'<span class="pf '+(cls||'')+'" aria-hidden="true">'+esc(ini)+'</span>';
+}
+function compressFoto(file){
+  return new Promise((res,rej)=>{
+    const url=URL.createObjectURL(file),im=new Image();
+    im.onload=()=>{
+      const W=480,H=640,r=W/H,c=document.createElement('canvas');c.width=W;c.height=H;
+      let sw=im.width,sh=im.height;
+      if(sw/sh>r){sw=sh*r}else{sh=sw/r}
+      const sx=(im.width-sw)/2,sy=(im.height-sh)*0.3;
+      const g=c.getContext('2d');g.fillStyle='#fff';g.fillRect(0,0,W,H);g.drawImage(im,sx,sy,sw,sh,0,0,W,H);
+      URL.revokeObjectURL(url);res(c.toDataURL('image/jpeg',.82));
+    };
+    im.onerror=()=>{URL.revokeObjectURL(url);rej(new Error('img'))};
+    im.src=url;
+  });
+}
 function empCtx(){
   const u=window.curUser?window.curUser():null;
   const onlyEmp=!!(u&&u.role!=='admin'&&Array.isArray(u.tabs)&&u.tabs.length>0&&u.tabs.every(t=>t==='empregado'));
@@ -2070,8 +2096,8 @@ function empProg(f){
   const req=EMP_KEYS.filter(k=>!EMP_OPT.includes(k));
   const dn=req.filter(k=>{const v=f[k];return v!==undefined&&v!==null&&String(v).trim()!==''}).length;
   const fo=(S.fotos||[]).filter(x=>x.func===f.id&&x.status!=='Recusado');
-  const dc=EMP_OBRIG.filter(t=>fo.some(x=>x.tipo===t)).length;
-  return{dn,dt:req.length,dc,dct:EMP_OBRIG.length,ok:dn===req.length&&dc===EMP_OBRIG.length};
+  const dc=EMP_OBRIG.filter(t=>fo.some(x=>x.tipo===t)).length+(f.fotoId?1:0);
+  return{dn,dt:req.length,dc,dct:EMP_OBRIG.length+1,ok:dn===req.length&&dc===EMP_OBRIG.length+1};
 }
 const empPend=()=>({fotos:(S.fotos||[]).filter(x=>x.status==='Enviado'&&fById(x.func)&&fById(x.func).status!=='Desligado').length,dados:S.func.filter(f=>f.status!=='Desligado'&&f.autoEm&&!f.conferido).length});
 
@@ -2120,12 +2146,18 @@ function empDados(f){
 function empDetail(f,locked){
   const dr=UI.edraft||{},p=empProg(f),first=(f.nome||'').split(' ')[0];
   const bar=(l,a,b)=>'<div class="row"><span class="l">'+l+'</span><div class="trk"><i style="width:'+(b?a/b*100:0)+'%"></i></div><span class="v">'+a+'/'+b+'</span></div>';
-  let h='<div class="card" style="margin-bottom:12px"><div style="display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;justify-content:space-between"><div><h3 style="margin:0;font-size:18px">'+esc(f.nome)+'</h3><small>'+esc(f.cargo||'—')+' · '+esc(f.depto||'—')+(f.unidade?' · '+esc(f.unidade):'')+'</small></div>'+empDados(f)+'</div>'
+  let h='<div class="card" style="margin-bottom:12px"><div style="display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;justify-content:space-between"><div style="display:flex;gap:12px;align-items:center">'+avFunc(f)+'<div><h3 style="margin:0;font-size:18px">'+esc(f.nome)+'</h3><small>'+esc(f.cargo||'—')+' · '+esc(f.depto||'—')+(f.unidade?' · '+esc(f.unidade):'')+'</small></div></div>'+empDados(f)+'</div>'
     +'<div style="margin-top:12px">'+bar('Dados',p.dn,p.dt)+bar('Documentos',p.dc,p.dct)+'</div>'
     +(locked?'<div class="note" style="margin-top:10px">Tudo o que você preencher aqui vai direto para o seu cadastro. O RH confere depois.'+(f.cadPend?' Seu acesso é temporário e será encerrado quando o RH concluir o seu cadastro.':'')+'</div>':'')
     +(!locked&&f.cadPend?'<div class="note" style="margin-top:10px"><b>Cadastro em andamento.</b> Acesso temporário'+(f.tempLogin?' (usuário <b>'+esc(f.tempLogin)+'</b>)':'')+' ativo até você concluir. <span style="display:inline-flex;flex-wrap:wrap;gap:6px;margin-left:4px"><button class="btn s" data-a="empnovasenha" data-id="'+f.id+'">Nova senha temporária</button><button class="btn s" data-a="edit" data-k="func" data-id="'+f.id+'">Editar cadastro completo</button><button class="btn s p" data-a="empconcluir" data-id="'+f.id+'">Concluir cadastro e encerrar acesso</button></span></div>':'')
     +(!locked&&f.autoEm&&!f.conferido?'<div class="note" style="margin-top:10px">O empregado atualizou os dados em '+fmt(f.autoEm)+'. Confira e marque como conferido. <button class="btn s p" data-a="empconf">Marcar como conferido</button></div>':'')
     +'</div>';
+  h+='<div class="card" style="margin-bottom:12px"><h3>'+(locked?'Minha foto do crachá':'Foto do crachá')+'</h3><div class="pfc">'
+    +(f.fotoId?'<img class="ph" data-img="'+f.fotoId+'" alt="Foto do crachá de '+esc(f.nome)+'">':'<div class="ph">Sem foto</div>')
+    +'<div class="pi"><p style="margin:0;color:var(--mu);font-size:13px">Foto de rosto, de frente, em fundo claro, sem óculos escuros, boné ou máscara. Ela será usada no seu crachá'+(locked?'':' e aparece na ficha do Dashboard')+'.'+(f.fotoEm?' Enviada em '+fmt(f.fotoEm)+'.':'')+'</p>'
+    +'<div class="eb"><button class="btn s p" data-a="fotocam">'+(f.fotoId?'Tirar outra foto':'Tirar foto')+'</button><button class="btn s" data-a="fotogal">Escolher da galeria</button>'
+    +(f.fotoId?(locked?'':'<button class="btn s" data-a="fotobaixar">Baixar foto</button>')+'<button class="btn s d" data-a="fotorm">Remover</button>':'')+'</div>'
+    +(f.fotoId?'':'<small style="color:var(--bd,#c0392b)">Obrigatória para emitir o crachá.</small>')+'</div></div></div>';
   const fd=k=>E.func.f.find(c=>c.k===k);
   const fld=k=>{
     const c=fd(k);if(!c)return'';
@@ -2180,7 +2212,8 @@ function lEmpList(){
     if(UI.emf==='inc')return !empProg(f).ok;return true}).sort((a,b)=>(b.cadPend?1:0)-(a.cadPend?1:0)||a.nome.localeCompare(b.nome,'pt-BR'));
   $('#emlist').innerHTML=tbl(['Funcionário','Dados pessoais','Documentos obrigatórios','Fotos',''],r.map(f=>{
     const p=empProg(f),fo=(S.fotos||[]).filter(x=>x.func===f.id),np=fo.filter(x=>x.status==='Enviado').length;
-    return '<tr><td><b>'+esc(f.nome)+'</b>'+(f.cadPend?' <span class="pill in">Cadastro em andamento</span>':'')+'<small>'+esc(f.depto||'')+(f.unidade?' · '+esc(f.unidade):'')+(f.cadPend&&f.tempLogin?' · login: '+esc(f.tempLogin):'')+'</small></td><td>'+empDados(f)+'</td><td>'+p.dc+' de '+p.dct+'</td><td>'+(fo.length?fo.length+' enviada'+(fo.length>1?'s':'')+(np?' · '+pill(np+' p/ conferir','wa'):''):'—')+'</td><td class="act"><button class="btn s p" data-a="empopen" data-id="'+f.id+'">Abrir</button></td></tr>'}).join('')||empty('Nenhum funcionário encontrado.'));
+    return '<tr><td><div style="display:flex;gap:10px;align-items:center">'+avFunc(f,'s')+'<div><b>'+esc(f.nome)+'</b>'+(f.cadPend?' <span class="pill in">Cadastro em andamento</span>':'')+'<small>'+esc(f.depto||'')+(f.unidade?' · '+esc(f.unidade):'')+(f.cadPend&&f.tempLogin?' · login: '+esc(f.tempLogin):'')+'</small></div></div></td><td>'+empDados(f)+'</td><td>'+p.dc+' de '+p.dct+'</td><td>'+(fo.length?fo.length+' enviada'+(fo.length>1?'s':'')+(np?' · '+pill(np+' p/ conferir','wa'):''):'—')+'</td><td class="act"><button class="btn s p" data-a="empopen" data-id="'+f.id+'">Abrir</button></td></tr>'}).join('')||empty('Nenhum funcionário encontrado.'));
+  hydrateImgs();
 }
 const emDocLink=d=>String(d.arq||'').startsWith('foto:')?' <button type="button" class="btn s" data-a="verfoto" data-id="'+d.arq.slice(5).split(',')[0]+'">Ver foto</button>':'';
 
@@ -2195,6 +2228,33 @@ async function empUpload(files,tipo,fid){
   }
   if(n){persist('fotos');toast(n+(n>1?' fotos enviadas':' foto enviada'));render()}
 }
+async function fotoUpload(file){
+  const c=empCtx(),f=c.f;if(!f||!file)return;
+  if(!/^image\//.test(file.type)){toast('Envie apenas imagens.');return}
+  try{
+    const img=await compressFoto(file),id=uid(),old=f.fotoId;
+    await saveImg(id,img);
+    if(old){delete IMGS[old];try{if(db){const x=db.doc('hr/foto_'+old);if(x.delete)x.delete()}}catch(e){}}
+    f.fotoId=id;f.fotoEm=T;f.fotoPor=c.u?c.u.login:'';
+    if(c.locked){f.autoEm=T;f.autoPor=c.u.login;f.conferido=false}
+    persist('func');toast('Foto do crachá salva');render();
+  }catch(e){toast('Não foi possível enviar a foto. Tente novamente.')}
+}
+Object.assign(ACT,{
+  fotocam:()=>{if(!empCtx().f)return;$('#empFCam').value='';$('#empFCam').click()},
+  fotogal:()=>{if(!empCtx().f)return;$('#empFGal').value='';$('#empFGal').click()},
+  fotorm:()=>{
+    const c=empCtx(),f=c.f;if(!f||!f.fotoId)return;
+    const old=f.fotoId;delete IMGS[old];try{if(db){const x=db.doc('hr/foto_'+old);if(x.delete)x.delete()}}catch(e){}
+    delete f.fotoId;delete f.fotoEm;delete f.fotoPor;persist('func');toast('Foto removida');render();
+  },
+  fotobaixar:async()=>{
+    const f=empCtx().f;if(!f||!f.fotoId)return;
+    const src=await fetchImg(f.fotoId);if(!src){toast('Imagem indisponível.');return}
+    const a=document.createElement('a');a.href=src;a.download='cracha-'+(f.nome||'funcionario').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')+'.jpg';
+    document.body.appendChild(a);a.click();a.remove();
+  }
+});
 Object.assign(ACT,{
   empopen:d=>{UI.ef=d.id;vEmp()},
   empback:()=>{UI.ef='';vEmp()},
@@ -2318,6 +2378,7 @@ Object.assign(ACT,{
 });
 document.addEventListener('change',e=>{
   const t=e.target;
+  if(t.id==='empFCam'||t.id==='empFGal'){if(t.files[0])fotoUpload(t.files[0]);return}
   if(t.id==='empCam'||t.id==='empGal'){const fs=[...t.files];if(fs.length&&UI._efid&&UI._et)empUpload(fs,UI._et,UI._efid);return}
 });
 ['input','change'].forEach(ev=>document.addEventListener(ev,e=>{
