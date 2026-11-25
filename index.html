@@ -2254,7 +2254,7 @@ Object.assign(ACT,{
 /* ---------- novo funcionário com acesso temporário ---------- */
 function credTexto(nome,login,senha){
   const url=/^https?:/.test(location.protocol)?location.href.split('#')[0]:'';
-  return 'Olá, '+nome.split(' ')[0]+'! Seu acesso temporário ao Painel RH da Rodobras:'+(url?'\nEndereço: '+url:'')+'\nUsuário: '+login+'\nSenha: '+senha+'\nEntre, complete seus dados pessoais e tire as fotos dos documentos pedidos. Este acesso é encerrado quando o RH concluir o seu cadastro.';
+  return 'Olá, '+nome.split(' ')[0]+'! Seu acesso temporário ao Painel RH da Rodobras:'+(url?'\nEndereço: '+url:'')+'\nUsuário: '+login+'\nSenha: '+senha+'\nEntre, complete seus dados pessoais e tire as fotos dos documentos pedidos.';
 }
 function credMostrar(f,c){
   $('#dnA').hidden=true;$('#dnB').hidden=false;
