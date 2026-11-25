@@ -2435,7 +2435,7 @@ RB.onUsers=l=>{
   if(me)paintUser();
   if(me&&typeof cur!=='undefined'&&cur==='usuarios'&&!$('#dus').open)vUsuarios();
 };
-window.RBfirst=()=>{if(me&&UC[me]&&UC[me].role==='admin'&&!stored.func&&!touched)persist('func')};
+window.RBfirst=()=>{if(me&&UC[me]&&UC[me].role==='admin'&&!stored.func&&!touched){S=sample();persist('func');needRender()}};
 RB.onAuthLost=()=>{if(me){leave();lgErr('Sua sessão expirou. Entre novamente.')}};
 function leave(){
   closeMenu();RB.clearToken();stopSync();me=null;UC={};
