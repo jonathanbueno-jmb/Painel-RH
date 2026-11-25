@@ -2156,7 +2156,7 @@ function empDetail(f,locked){
     +(f.fotoId?'<img class="ph" data-img="'+f.fotoId+'" alt="Foto do crachá de '+esc(f.nome)+'">':'<div class="ph">Sem foto</div>')
     +'<div class="pi"><p style="margin:0;color:var(--mu);font-size:13px">Foto de rosto, de frente, em fundo claro, sem óculos escuros, boné ou máscara. Ela será usada no seu crachá'+(locked?'':' e aparece na ficha do Dashboard')+'.'+(f.fotoEm?' Enviada em '+fmt(f.fotoEm)+'.':'')+'</p>'
     +'<div class="eb"><button class="btn s p" data-a="fotocam">'+(f.fotoId?'Tirar outra foto':'Tirar foto')+'</button><button class="btn s" data-a="fotogal">Escolher da galeria</button>'
-    +(f.fotoId?(locked?'':'<button class="btn s" data-a="fotobaixar">Baixar foto</button>')+'<button class="btn s d" data-a="fotorm">Remover</button>':'')+'</div>'
+    +(f.fotoId&&!locked?'<button class="btn s" data-a="fotobaixar">Baixar foto</button><button class="btn s d" data-a="fotorm">Remover</button>':'')+'</div>'
     +(f.fotoId?'':'<small style="color:var(--bd,#c0392b)">Obrigatória para emitir o crachá.</small>')+'</div></div></div>';
   const fd=k=>E.func.f.find(c=>c.k===k);
   const fld=k=>{
