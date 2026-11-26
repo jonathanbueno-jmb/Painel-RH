@@ -2283,13 +2283,24 @@ Object.assign(ACT,{
     $('#dfT').textContent=r.tipo;
     $('#dfS').innerHTML=(c.locked?'':'<b>'+esc(nm(r.func))+'</b> · ')+'enviada em '+fmt(r.em)+' · '+pill(r.status,FST[r.status])+(r.motivo?'<br>Motivo: '+esc(r.motivo):'');
     $('#dfR').hidden=c.locked;$('#dfM').value='';
-    $('#dfA').innerHTML=(!c.locked&&r.status!=='Aprovado'?'<button class="btn p" data-a="empapr" data-id="'+r.id+'">Aprovar</button>':'')
+    $('#dfA').innerHTML='<button class="btn" data-a="verfotobaixar" data-id="'+r.id+'">Baixar</button>'
+      +(!c.locked&&r.status!=='Aprovado'?'<button class="btn p" data-a="empapr" data-id="'+r.id+'">Aprovar</button>':'')
       +(!c.locked&&r.status!=='Recusado'?'<button class="btn d" data-a="emprec" data-id="'+r.id+'">Recusar</button>':'')
       +(c.locked&&r.status==='Aprovado'?'':'<button class="btn d" data-a="empdelfoto" data-id="'+r.id+'">Excluir</button>');
     im.removeAttribute('src');im.alt='Carregando…';$('#dfoto').showModal();
     const src=await fetchImg(r.id);if(src)im.src=src;else im.alt='Imagem indisponível';
   },
   fotoclose:()=>$('#dfoto').close(),
+  verfotobaixar:async d=>{
+    const r=(S.fotos||[]).find(x=>x.id===d.id);if(!r)return;
+    const src=await fetchImg(r.id);if(!src){toast('Imagem indisponível.');return}
+    const slug=t=>String(t||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+    const mt=(String(src).match(/^data:image\/(\w+)/)||[])[1]||'jpeg';
+    const ext=mt==='jpeg'?'jpg':mt;
+    const a=document.createElement('a');a.href=src;
+    a.download=[slug(r.tipo)||'documento',slug(nm(r.func))||'funcionario'].join('-')+'.'+ext;
+    document.body.appendChild(a);a.click();a.remove();
+  },
   empapr:d=>{
     const r=S.fotos.find(x=>x.id===d.id);if(!r)return;
     r.status='Aprovado';r.motivo='';
