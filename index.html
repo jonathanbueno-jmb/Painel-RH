@@ -611,7 +611,7 @@ document.documentElement.setAttribute('data-theme',t);document.body.classList.ad
       <p>Use seu usuário e senha para acessar o painel.</p>
       <div class="lg-fld"><label for="lgU">Usuário</label><input type="text" id="lgU" autocomplete="username" autocapitalize="none" spellcheck="false" required></div>
       <div class="lg-fld"><label for="lgP">Senha</label><div class="pw"><input type="password" id="lgP" autocomplete="current-password" required><button type="button" class="eye" id="lgEye" aria-label="Mostrar senha" title="Mostrar senha"></button></div></div>
-      <label class="lg-chk"><input type="checkbox" id="lgR"> Manter conectado neste navegador</label>
+      <label class="lg-chk"><input type="checkbox" id="lgR"> Lembrar usuário</label>
       <div class="lg-err" id="lgE" role="alert" hidden></div>
       <button type="submit" class="btn p lg-go" id="lgGo">Entrar</button>
       <div class="lg-soc">
@@ -2505,6 +2505,12 @@ function lockFor(sec){
     lgE.textContent='Muitas tentativas. Tente novamente em '+n+' s.';lgE.hidden=false;n--};
   tick();lockT=setInterval(tick,1000);
 }
+/* lembrar usuário: guarda só o nome de usuário (nunca a senha) */
+const RU_KEY='rb_user';
+function ruGet(){try{return localStorage.getItem(RU_KEY)||''}catch(e){return ''}}
+function ruSet(u){try{if(u)localStorage.setItem(RU_KEY,u);else localStorage.removeItem(RU_KEY)}catch(e){}}
+function ruFill(){const u=ruGet();$('#lgU').value=u;$('#lgR').checked=!!u}
+function lgFocus(){($('#lgU').value?$('#lgP'):$('#lgU')).focus()}
 function startSync(){
   $('#view').innerHTML='<div class="card"><div class="empty">Carregando dados…</div></div>';
   resetData();initDb();
@@ -2530,17 +2536,17 @@ function leave(){
   closeMenu();RB.clearToken();stopSync();me=null;UC={};
   $('#toast').hidden=true;
   document.body.classList.add('locked');
-  $('#lgU').value='';$('#lgP').value='';$('#lgP').type='password';paintEye();lgE.hidden=true;
-  scrollTo(0,0);$('#lgU').focus();
+  ruFill();$('#lgP').value='';$('#lgP').type='password';paintEye();lgE.hidden=true;
+  scrollTo(0,0);lgFocus();
 }
 lgForm.addEventListener('submit',async e=>{
   e.preventDefault();if(lgGo.disabled)return;
   const u=$('#lgU').value.trim().toLowerCase(),p=$('#lgP').value;
   if(!u||!p){lgErr('Informe o usuário e a senha.');return}
   lgGo.disabled=true;let r;
-  try{r=await RB.call('login',{u,p,keep:$('#lgR').checked})}catch(err){lgGo.disabled=false;lgErr(RBe());return}
+  try{r=await RB.call('login',{u,p,keep:false})}catch(err){lgGo.disabled=false;lgErr(RBe());return}
   lgGo.disabled=false;
-  if(r.ok){RB.setToken(r.token,$('#lgR').checked);RB.uv=r.uv;UC=toObj(r.users);UC[r.user.login]=r.user;enter(r.user.login,$('#lgR').checked);return}
+  if(r.ok){ruSet($('#lgR').checked?u:'');RB.setToken(r.token,false);RB.uv=r.uv;UC=toObj(r.users);UC[r.user.login]=r.user;enter(r.user.login,false);return}
   $('#lgP').value='';
   if(r.err==='locked'){lockFor(r.wait||300);return}
   $('#lgP').focus();lgErr(r.msg||'Usuário ou senha incorretos.');
@@ -2752,7 +2758,7 @@ paintTheme();paintEye();
       if(r.ok){RB.uv=r.uv;UC=toObj(r.users);UC[r.user.login]=r.user;me=r.user.login;paintUser();document.body.classList.remove('locked');startSync();applyAccess();replayFx();return}
     }catch(e){}
   }
-  $('#lgU').focus();
+  ruFill();lgFocus();
 })();
 syncVid();
 })();
