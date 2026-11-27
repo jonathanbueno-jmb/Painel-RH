@@ -167,7 +167,7 @@ dialog{border:1px solid var(--ln);border-radius:14px;background:var(--sf);color:
 .fth{width:92px;border:1px solid var(--ln);border-radius:8px;background:var(--sf2);padding:0 0 4px;cursor:pointer;overflow:hidden;text-align:center;color:inherit}
 .fth img{width:100%;height:68px;object-fit:cover;display:block;background:var(--sf2);margin-bottom:4px}
 .pf{width:56px;height:56px;border-radius:50%;object-fit:cover;background:var(--sf2);flex:none;display:flex;align-items:center;justify-content:center;font:700 20px/1 var(--font);color:var(--mu);border:1px solid var(--ln);overflow:hidden}
-.pf.s{width:32px;height:32px;font-size:13px}.pf.l{width:84px;height:84px;font-size:28px}
+.pf.s{width:32px;height:32px;font-size:13px}.pf.l{width:120px;height:160px;border-radius:10px;font-size:36px}
 .pfc{display:flex;gap:16px;align-items:center;flex-wrap:wrap}.pfc .ph{width:120px;height:160px;border-radius:10px;border:1px solid var(--ln);background:var(--sf2);object-fit:cover;display:flex;align-items:center;justify-content:center;color:var(--mu);font-size:12px;text-align:center;padding:6px;box-sizing:border-box;flex:none}
 .pfc .pi{flex:1;min-width:220px;display:flex;flex-direction:column;gap:8px}
 dialog::backdrop{background:rgba(0,0,0,.45)}
@@ -1253,6 +1253,7 @@ function badge(id){
 function render(){
   if(!ready&&(db||window.RBloading))return;
   if(!S.fotos)S.fotos=[];
+  S.func.forEach(f=>{if(!f.fotoId&&!f.fotoRm&&/^f\d+$/.test(f.id))f.fotoId='demo:'+f.id});
   (S.ferias||[]).forEach(v=>{if(v.tipo==='Licença médica')v.tipo='Declaração médica'});
   const btn=id=>{const t=TABS.find(x=>x[0]===id);if(!t)return '';const b=badge(id);return '<button data-a="tab" data-id="'+id+'" title="'+t[1]+'"'+(id===cur?' class="on" aria-current="page"':'')+'>'+(SB_ICONS[id]||'')+'<span class="lb">'+t[1]+'</span>'+(b?'<span class="bg">'+b+'</span>':'')+'</button>'};
   const shown=new Set(),ok=id=>!window.canTab||window.canTab(id);
@@ -1700,7 +1701,7 @@ function vEpis(){
   const eb=UI.eb,ek={estoque:'estq',mov:'mov',entregas:'epis'}[eb];
   const tabs=[['estoque','Estoque'],['mov','Movimentações'],['entregas','Entregas por funcionário']].map(([k,l])=>'<button class="btn s'+(eb===k?' p':'')+'" data-a="eb" data-id="'+k+'">'+l+'</button>').join('');
   const opt=(arr,cur)=>arr.map(s=>'<option'+(cur===s?' selected':'')+'>'+s+'</option>').join('');
-  const bar=eb==='estoque'?'<input type="search" data-f="eq" placeholder="Buscar item ou CA" value="'+esc(UI.eq)+'"><select data-f="est"><option value="">Todas as situações</option>'+opt(['Normal','Abaixo do mínimo','Zerado'],UI.est)+'</select>'
+  const bar=eb==='estoque'?'<input type="search" data-f="eq" placeholder="Buscar item" value="'+esc(UI.eq)+'"><select data-f="est"><option value="">Todas as situações</option>'+opt(['Normal','Abaixo do mínimo','Zerado'],UI.est)+'</select>'
     :eb==='mov'?'<input type="search" data-f="eq" placeholder="Buscar item, funcionário ou documento" value="'+esc(UI.eq)+'"><select data-f="mt"><option value="">Todos os tipos</option>'+opt(['Entrada','Saída','Ajuste'],UI.mt)+'</select>'
     :'<input type="search" data-f="eq" placeholder="Buscar por funcionário ou EPI" value="'+esc(UI.eq)+'"><select data-f="es"><option value="">Todas as situações</option>'+opt(['Em uso','Troca vencida','Devolvido','Substituído'],UI.es)+'</select>';
   $('#view').innerHTML=head('Controle de EPIs','Estoque, entradas e saídas de material e entregas aos funcionários','<button class="btn" data-a="exp" data-k="'+ek+'">Exportar Excel</button><button class="btn" data-a="new" data-k="estq">+ Novo item</button><button class="btn" data-a="new" data-k="entrada">+ Entrada</button><button class="btn p" data-a="new" data-k="saida">− Saída</button>')
@@ -2119,9 +2120,69 @@ function compressImg(file){
     im.src=url;
   });
 }
+/* retratos 3x4 ilustrados para os funcionários de demonstração (gerados localmente, sem rede) */
+function demoFoto(id){
+  const f=(typeof S!=='undefined'&&S.func.find(x=>x.id===id))||{id,nome:id};
+  let h=2166136261;for(const ch of String(id)){h^=ch.charCodeAt(0);h=Math.imul(h,16777619)}
+  const rnd=()=>{h=h+0x6D2B79F5|0;let t=Math.imul(h^h>>>15,1|h);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296};
+  for(let i=0;i<4;i++)rnd();
+  const pk=a=>a[Math.floor(rnd()*a.length)];
+  const first=String(f.nome||'').trim().split(/\s+/)[0];
+  const fem=/a$/i.test(first)||['Beatriz','Denise','Raquel','Yasmin','Ingrid','Isabel','Carmen'].includes(first);
+  const skin=pk(['#f3d2b3','#ecc19a','#dca57b','#c68a5f','#a8694a','#86513a','#64402c']);
+  const hair=rnd()<.12?pk(['#9a9a9a','#b9b9b9']):pk(['#16110e','#2a1b12','#3d2616','#5a3a1e','#7a5128','#b58a45']);
+  const shirt=pk(['#1f4e79','#2f6f4f','#7a2e3a','#3b3b4f','#a95a1a','#0d6e8a','#555d66','#7b5a9e']);
+  const bg=pk([['#dfe8f1','#b9c9da'],['#e6e9ee','#c4cad3'],['#e8efe6','#c2d0be'],['#f0e9e0','#d6c8b6'],['#e3e1ef','#c4c0dc']]);
+  const c=document.createElement('canvas');c.width=240;c.height=320;const x=c.getContext('2d');
+  const blob=(cx,cy,rx,ry,col)=>{x.fillStyle=col;x.beginPath();x.ellipse(cx,cy,rx,ry,0,0,7);x.fill()};
+  const g=x.createLinearGradient(0,0,0,320);g.addColorStop(0,bg[0]);g.addColorStop(1,bg[1]);x.fillStyle=g;x.fillRect(0,0,240,320);
+  const style=fem?pk(['long','long','bob','bun','curly']):pk(['short','short','side','buzz','bald']);
+  /* cabelo atrás */
+  if(style==='long')blob(120,165,63,100,hair);
+  if(style==='bob')blob(120,152,63,72,hair);
+  if(style==='curly')blob(120,140,66,78,hair);
+  /* pescoço, orelhas, ombros */
+  x.fillStyle=skin;x.beginPath();x.roundRect(101,185,38,70,10);x.fill();
+  x.fillStyle='rgba(0,0,0,.14)';x.beginPath();x.roundRect(101,205,38,22,8);x.fill();
+  blob(70,143,8,13,skin);blob(170,143,8,13,skin);
+  x.fillStyle=shirt;x.beginPath();x.moveTo(0,320);x.lineTo(0,285);x.quadraticCurveTo(12,252,84,242);x.lineTo(156,242);x.quadraticCurveTo(228,252,240,285);x.lineTo(240,320);x.fill();
+  x.fillStyle=skin;x.beginPath();x.moveTo(98,243);x.lineTo(120,280);x.lineTo(142,243);x.closePath();x.fill();
+  x.fillStyle='rgba(255,255,255,.88)';
+  x.beginPath();x.moveTo(94,240);x.lineTo(120,288);x.lineTo(110,238);x.closePath();x.fill();
+  x.beginPath();x.moveTo(146,240);x.lineTo(120,288);x.lineTo(130,238);x.closePath();x.fill();
+  /* cabeça */
+  blob(120,138,50,60,skin);
+  const sg=x.createLinearGradient(70,0,170,0);sg.addColorStop(0,'rgba(0,0,0,0)');sg.addColorStop(1,'rgba(0,0,0,.10)');
+  x.fillStyle=sg;x.beginPath();x.ellipse(120,138,50,60,0,0,7);x.fill();
+  /* cabelo à frente */
+  const cap=(top,hl)=>{x.fillStyle=hair;x.beginPath();x.moveTo(70,142);x.bezierCurveTo(60,top,180,top,170,142);x.bezierCurveTo(167,hl+14,148,hl,120,hl-2);x.bezierCurveTo(92,hl,73,hl+14,70,142);x.fill()};
+  if(style==='short')cap(56,98);
+  if(style==='side'){cap(54,96);x.fillStyle=hair;x.beginPath();x.moveTo(72,128);x.bezierCurveTo(90,92,140,84,168,112);x.bezierCurveTo(140,102,104,104,72,128);x.fill()}
+  if(style==='buzz'){x.globalAlpha=.8;cap(70,92);x.globalAlpha=1}
+  if(style==='bald'){blob(72,125,6,20,hair);blob(168,125,6,20,hair)}
+  if(style==='long'||style==='bob'){cap(54,94);x.fillStyle=hair;x.beginPath();x.moveTo(168,138);x.bezierCurveTo(166,100,120,84,80,104);x.bezierCurveTo(130,100,160,112,168,138);x.fill()}
+  if(style==='bun'){blob(120,46,21,19,hair);cap(54,95)}
+  if(style==='curly'){for(let i=0;i<9;i++){const a=Math.PI+i*Math.PI/8;blob(120+58*Math.cos(a),112+50*Math.sin(a),17,17,hair)}cap(58,100)}
+  /* barba e bigode */
+  if(!fem&&style!=='bald'&&rnd()<.28){x.fillStyle=hair;x.globalAlpha=.92;x.beginPath();x.moveTo(72,152);x.bezierCurveTo(76,222,164,222,168,152);x.bezierCurveTo(162,182,142,190,120,190);x.bezierCurveTo(98,190,78,182,72,152);x.fill();x.beginPath();x.ellipse(120,175,17,5,0,0,7);x.fill();x.globalAlpha=1}
+  /* rosto */
+  blob(94,166,11,7,'rgba(220,90,90,.13)');blob(146,166,11,7,'rgba(220,90,90,.13)');
+  const ir=pk(['#2b1a10','#4a2e18','#2f4a3a','#2c3f5c']);
+  blob(101,142,7.5,4.8,'#fff');blob(139,142,7.5,4.8,'#fff');blob(101,142,3.6,3.6,ir);blob(139,142,3.6,3.6,ir);
+  x.fillStyle='#0b0b0b';x.beginPath();x.arc(101,142,1.6,0,7);x.arc(139,142,1.6,0,7);x.fill();
+  x.strokeStyle=hair;x.lineCap='round';x.lineWidth=fem?3:4.2;x.globalAlpha=.9;
+  x.beginPath();x.moveTo(90,128);x.quadraticCurveTo(101,123,112,127);x.moveTo(128,127);x.quadraticCurveTo(139,123,150,128);x.stroke();x.globalAlpha=1;
+  x.strokeStyle='rgba(0,0,0,.28)';x.lineWidth=2.4;x.beginPath();x.moveTo(120,146);x.quadraticCurveTo(113,168,121,171);x.stroke();
+  const lip=fem?'#b5475a':'#8f4040';
+  x.strokeStyle=lip;x.lineWidth=fem?4.4:3.6;x.beginPath();x.moveTo(105,183);x.quadraticCurveTo(120,196,135,183);x.stroke();
+  if(rnd()<.26){x.strokeStyle='#23262b';x.lineWidth=2.6;x.beginPath();x.roundRect(83,131,36,23,8);x.roundRect(121,131,36,23,8);x.moveTo(119,140);x.lineTo(121,140);x.stroke()}
+  return c.toDataURL('image/jpeg',.9);
+}
 async function saveImg(id,img){IMGS[id]=img;if(db)await db.doc('hr/foto_'+id).set({img})}
 async function fetchImg(id){
-  if(IMGS[id])return IMGS[id];if(!db)return'';
+  if(IMGS[id])return IMGS[id];
+  if(String(id).startsWith('demo:')){try{return IMGS[id]=demoFoto(String(id).slice(5))}catch(e){return''}}
+  if(!db)return'';
   try{
     const d=db.doc('hr/foto_'+id);
     const sn=typeof d.get==='function'?await d.get():await new Promise((ok,no)=>{d.onSnapshot(ok,no)});
@@ -2246,7 +2307,7 @@ Object.assign(ACT,{
   fotorm:()=>{
     const c=empCtx(),f=c.f;if(!f||!f.fotoId)return;
     const old=f.fotoId;delete IMGS[old];try{if(db){const x=db.doc('hr/foto_'+old);if(x.delete)x.delete()}}catch(e){}
-    delete f.fotoId;delete f.fotoEm;delete f.fotoPor;persist('func');toast('Foto removida');render();
+    delete f.fotoId;delete f.fotoEm;delete f.fotoPor;f.fotoRm=true;persist('func');toast('Foto removida');render();
   },
   fotobaixar:async()=>{
     const f=empCtx().f;if(!f||!f.fotoId)return;
